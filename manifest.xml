@@ -1,0 +1,16 @@
+<package>
+  <description brief="cv_nodes">
+
+     A collection of OpenCV functions implemented as ROS nodes.
+
+  </description>
+  <author>root</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/cv_nodes</url>
+  <depend package="rospy"/>
+  <depend package="cv_bridge"/>
+
+</package>
+
+

@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+import roslib; roslib.load_manifest('cv_nodes')
+import rospy
+import cv_bridge
+import cv
+import cv2
+import numpy
+
+import std_msgs
+import sensor_msgs
+
+bridge = cv_bridge.CvBridge()
+
+def receive_filename(msg):
+    filename = msg.data
+    np_image = cv2.imread(filename)
+    print "np_image.shape =", np_image.shape
+    print np_image
+
+    maskname = filename[:filename.rfind(".")] + "-mask" + filename[filename.rfind("."):]
+    mask = cv2.imread(maskname)
+    if mask != None:
+        mw, mh, mc = mask.shape
+        new_mask = numpy.zeros((mw, mh), mask.dtype)
+        for x in range(mw):
+            for y in range(mh):
+                new_mask[x][y] = mask[x][y].mean()
+        mask = new_mask
+    
+    w, h, c = np_image.shape
+    if c == 3 and mask != None:
+        new_image = numpy.zeros((w, h, 4), np_image.dtype)
+        for x in range(w):
+            for y in range(h):
+                r, g, b = np_image[x][y]
+                new_image[x][y] = r, g, b, mask[x][y]
+        np_image = new_image
+            
+    print "final image"
+    print np_image
+    cv_image = cv.fromarray(np_image)
+    ros_image = bridge.cv_to_imgmsg(cv_image)
+    pub_image.publish(ros_image)
+
+if __name__ == "__main__":
+    rospy.init_node("imread", anonymous=True)
+    sub_filename = rospy.Subscriber("filename", std_msgs.msg.String, receive_filename)
+    pub_image = rospy.Publisher("image", sensor_msgs.msg.Image)
+    rospy.spin()
+
